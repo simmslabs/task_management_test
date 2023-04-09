@@ -3,6 +3,10 @@
 ## Development
 
 First todo after clonning:
+Create a .env file in your project directory, then add
+
+```sh
+DATABASE_URL="your mongodb connection string"
 
 ```sh
 pnpm install
