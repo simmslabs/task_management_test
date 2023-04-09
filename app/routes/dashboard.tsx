@@ -1,16 +1,17 @@
 /* eslint-disable jsx-a11y/anchor-has-content */
-import { AppShell, Avatar, Box, Button, Card, Divider, Grid, Group, NavLink, Navbar, Stack, Text } from "@mantine/core";
+import { AppShell, Avatar, Box, Button, Card, Divider, Grid, Group, LoadingOverlay, NavLink, Navbar, Stack, Text, TextInput } from "@mantine/core";
 import type { LoaderFunction, V2_MetaFunction } from "@remix-run/node";
-import { Link, Outlet, useLocation, useNavigation, useRouteLoaderData } from "@remix-run/react";
+import { Link, Outlet, useLocation, useNavigate, useNavigation, useRouteLoaderData } from "@remix-run/react";
 import { useEffect, useState } from "react";
 import { GrHome, GrTask } from "react-icons/gr";
 import ProjectTaskCard from "~/components/ProjectTaskCard";
 import { use_user_store } from "~/services/states";
 import type { Task } from "~/types";
 import { NavigationProgress, resetNavigationProgress, startNavigationProgress } from "@mantine/nprogress";
+import axios from "axios";
 
 export const meta: V2_MetaFunction = () => {
-  return [{ title: "New Remix App" }];
+  return [{ title: "Task Manager" }];
 };
 
 export const loader: LoaderFunction = () => {
@@ -22,6 +23,8 @@ export default function Index() {
   const user = use_user_store(s => s.user);
   const loc = useLocation();
   const [_tasks, setTasks] = useState<Task[]>([]);
+  const nav = useNavigate();
+  const [loading, setLoading] = useState(false);
   const root_data = useRouteLoaderData("root") as unknown as { tasks: Task[] } | null;
   useEffect(() => {
     if (root_data && "tasks" in root_data) {
@@ -44,6 +47,13 @@ export default function Index() {
     }
   }, [transition.state, location.pathname, location.key]);
 
+  const _log_out = async () => {
+    const resp = (await axios.get<boolean | null>("/api/auth/logout")).data;
+    if (resp) {
+      nav("/login");
+    }
+  }
+
   return (
     <>
       {user && (
@@ -57,10 +67,7 @@ export default function Index() {
                   <Text weight="bold" size="xl">Dashboard</Text>
                   <Divider />
                   <NavLink icon={<GrHome />} component={Link} to="/dashboard" label="Home" />
-                  <NavLink icon={<GrTask />} label="Tasks">
-                    <NavLink component={Link} to="task/add" label="Add" />
-                    <NavLink label="List" />
-                  </NavLink>
+                  <NavLink component={Link} to="task/add" icon={<GrTask />} label="Add Tasks" />
                 </Stack>
                 <Box sx={{ flex: 1 }} />
                 <Card p={2} withBorder>
@@ -68,7 +75,7 @@ export default function Index() {
                     <Avatar radius="xl">S</Avatar>
                     <Stack spacing={0} sx={{ flex: 1 }} align="stretch">
                       <Text color="dimmed" size="xs">{user.name}</Text>
-                      <Button variant="light" color="red">Logout</Button>
+                      <Button onClick={() => _log_out()} variant="light" color="red">Logout</Button>
                     </Stack>
                   </Group>
                 </Card>
@@ -76,13 +83,18 @@ export default function Index() {
             }
           >
             {loc.pathname == "/dashboard" ?
-              <Grid>
-                {_tasks.map((task, i) => (
-                  <Grid.Col key={i} md={3}>
-                    <ProjectTaskCard task={task} />
-                  </Grid.Col>
-                ))}
-              </Grid> :
+              <Stack>
+                <LoadingOverlay visible={loading} />
+                <TextInput type="search" placeholder='Search for tasks, tags, team members' variant="filled" radius="md" />
+                <Grid>
+                  {_tasks.map((task, i) => (
+                    <Grid.Col key={i} md={3}>
+                      <ProjectTaskCard task={task} />
+                    </Grid.Col>
+                  ))}
+                </Grid>
+              </Stack>
+              :
               <Outlet />
             }
           </AppShell>

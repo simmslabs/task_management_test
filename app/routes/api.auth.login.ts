@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import { json, type ActionFunction } from "@remix-run/node";
 import { commitSession, getSession } from '~/services/session.server';
 import { get_access_token } from '~/services/helpers.server';
+import prisma from '~/services/prisma';
 
 export const action: ActionFunction = async ({ request }) => {
   const { email, password } = await request.json();

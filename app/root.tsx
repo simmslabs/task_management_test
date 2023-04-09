@@ -13,7 +13,7 @@ import { AddAssignee } from './components/my_context_modals';
 
 export const meta: V2_MetaFunction = () => ([{
   charset: 'utf-8',
-  title: 'New Remix App',
+  title: 'Task Manager',
   viewport: 'width=device-width,initial-scale=1',
 }]);
 

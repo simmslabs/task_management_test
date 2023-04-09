@@ -1,9 +1,9 @@
 import { Alert, Button, Container, Grid, PasswordInput, Stack, Text, TextInput, Title } from '@mantine/core';
-import React, { useState } from 'react'
+import { useState } from 'react'
 import type { RegistrationZodType } from '~/services/zod-types';
 import { RegistrationZod } from '~/services/zod-types';
 import axios from "axios";
-import { useForm, SubmitHandler } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { Form, useNavigate } from '@remix-run/react';
 
 function RegisterPage() {

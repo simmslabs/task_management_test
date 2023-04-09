@@ -1,7 +1,7 @@
-import { ActionIcon, Anchor, Avatar, Badge, Box, Breadcrumbs, Button, Group, Menu, Progress, Select, Stack, Table, Tabs, Text, TextInput, Title, Tooltip } from '@mantine/core';
-import type { LoaderFunction, MetaFunction, V2_MetaFunction } from '@remix-run/node';
+import { ActionIcon, Anchor, Avatar, Badge, Box, Breadcrumbs, Button, Group, Menu, Stack, Table, Tabs, Text, TextInput, Title, Tooltip } from '@mantine/core';
+import type { LoaderFunction, V2_MetaFunction } from '@remix-run/node';
 import { json } from '@remix-run/node';
-import { useLoaderData } from '@remix-run/react';
+import { useLoaderData, useNavigate } from '@remix-run/react';
 import { AiFillDelete, AiFillWarning, AiOutlineArrowRight, AiOutlinePlus } from 'react-icons/ai';
 import { auth_middleware } from '~/services/helpers.server';
 import prisma from '~/services/prisma';
@@ -9,8 +9,7 @@ import type { Activity, Task } from '~/types';
 import moment from 'moment';
 import { modals } from "@mantine/modals";
 import NewActivity from '~/components/NewActivity';
-import { Children, useEffect, useState } from 'react';
-import type { activity } from '@prisma/client';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import Countdown from "react-countdown";
 import { use_user_store } from '~/services/states';
@@ -68,6 +67,7 @@ function TaskViewPanel() {
   const [hours, setHours] = useState(0);
   const user = use_user_store(s => s.user);
   const [percentage, setPercentage] = useState(0);
+  const nav = useNavigate();
 
   const _add_activity = () => {
     modals.open({
@@ -143,6 +143,16 @@ function TaskViewPanel() {
   const _delete_task = (task: Task) => {
     modals.openConfirmModal({
       children: <ProjectTaskCard task={task} />,
+      async onConfirm() {
+        try {
+          const resp = (await axios.get<boolean | null>(`/api/task/delete/${task.id}`)).data;
+          if (resp) {
+            window.location.href = "/dashboard";
+          }
+        } catch (error) {
+          console.log(error);
+        }
+      },
       labels: {
         cancel: "Cancel",
         confirm: "Delete"
@@ -154,7 +164,6 @@ function TaskViewPanel() {
     <>
       {data && (
         <Stack>
-          <TextInput placeholder='Search for tasks, tags, team members' variant="filled" radius="md" />
           <Breadcrumbs>
             {[{ title: 'Tasks', href: "/dashboard/task" }, { title: data.title, href: data.id }].map((m, i) => <Anchor size="xs" color='dimmed' key={i} href={m.href}>{m.title}</Anchor>)}
           </Breadcrumbs>

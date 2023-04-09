@@ -1,4 +1,4 @@
-import { Button, Container, Grid, PasswordInput, Stack, Text, TextInput, Title } from '@mantine/core';
+import { Button, Card, Container, Grid, PasswordInput, Stack, Text, TextInput, Title } from '@mantine/core';
 import { Form, useNavigate } from '@remix-run/react';
 import axios from 'axios';
 import { useState } from 'react';
@@ -20,7 +20,7 @@ function LoginPage() {
     try {
       const resp = (await axios.post<{ success: boolean; message: string }>("/api/auth/login", data)).data;
       if (resp.success) {
-        nav("/");
+        window.location.href = "/dashboard";
       }
     } catch (error) {
       console.log(error);
@@ -31,7 +31,8 @@ function LoginPage() {
   return (
     <Container className="w-full flex-1 flex flex-col">
       <Grid justify="center" className='flex-1 justify-center p-0 m-0'>
-        <Grid.Col sm={4} md={4}>
+        <Grid.Col pt={100} sm={4} md={4}>
+          {/* <Card withBorder> */}
           <Form onSubmit={form.handleSubmit(_login)}>
             <Stack>
               <Stack spacing={0}>
@@ -43,6 +44,7 @@ function LoginPage() {
               <Button type="submit" loading={loading}>Login</Button>
             </Stack>
           </Form>
+          {/* </Card> */}
         </Grid.Col>
       </Grid>
     </Container>

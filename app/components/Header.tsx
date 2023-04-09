@@ -24,7 +24,7 @@ function Header() {
             <Text>Logo</Text>
             <Space sx={{ flex: 1 }} />
             <Group noWrap>
-              <NavLink component={Link} to="/" label="Home" />
+              {/* <NavLink component={Link} to="/" label="Home" /> */}
               <NavLink component={Link} to="login" label="Login" />
               <NavLink component={Link} to="register" label="Register" />
             </Group>

@@ -1,8 +1,8 @@
 import { getSession } from "./session.server";
-import prisma from "~/services/prisma";
 import jwt from "jsonwebtoken";
 import type { user } from "@prisma/client";
 import * as dotenv from 'dotenv';
+import prisma from "~/services/prisma";
 dotenv.config();
 export type _Request = Request & { user: user, token: string };
 

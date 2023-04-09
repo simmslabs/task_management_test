@@ -27,7 +27,7 @@ function AddTaskPanel() {
       try {
         const resp = (await axios.post<task | null>("/api/task", data)).data;
         if (resp) {
-          nav(`/dashboard/task/${resp.id}`);
+          window.location.href = `/dashboard/task/${resp.id}`;
         }
       } catch (error) {
         console.log(data);
