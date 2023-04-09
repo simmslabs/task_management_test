@@ -15,6 +15,9 @@ This starts your app in development mode, which will purge the server require ca
 First, build your app for production:
 
 ```sh
+pnpm install
+npx prisma db push
+# If using an old prisma version the run the command below
 pnpm run build
 ```
 
