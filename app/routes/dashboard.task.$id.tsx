@@ -1,4 +1,4 @@
-import { ActionIcon, Anchor, Avatar, Badge, Box, Breadcrumbs, Group, Menu, Progress, Select, Stack, Table, Tabs, Text, TextInput, Title, Tooltip } from '@mantine/core';
+import { ActionIcon, Anchor, Avatar, Badge, Box, Breadcrumbs, Button, Group, Menu, Progress, Select, Stack, Table, Tabs, Text, TextInput, Title, Tooltip } from '@mantine/core';
 import type { LoaderFunction, MetaFunction, V2_MetaFunction } from '@remix-run/node';
 import { json } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
@@ -9,13 +9,14 @@ import type { Activity, Task } from '~/types';
 import moment from 'moment';
 import { modals } from "@mantine/modals";
 import NewActivity from '~/components/NewActivity';
-import { useEffect, useState } from 'react';
+import { Children, useEffect, useState } from 'react';
 import type { activity } from '@prisma/client';
 import axios from 'axios';
 import Countdown from "react-countdown";
 import { use_user_store } from '~/services/states';
 import AddMemberToTask from '~/components/AddMemberToTask';
 import AddTagsToTask from '~/components/AddTagsToTask';
+import ProjectTaskCard from '~/components/ProjectTaskCard';
 
 export const loader: LoaderFunction = async ({ request, params }) => {
   const { id } = params;
@@ -57,7 +58,7 @@ export const meta: V2_MetaFunction = ({ data }) => {
     {
       title: `Task: ${data.title}`
     }
-  ]
+  ];
 }
 
 
@@ -66,6 +67,8 @@ function TaskViewPanel() {
   const [tabs_value, setTabs_value] = useState<string | null>("activities");
   const [hours, setHours] = useState(0);
   const user = use_user_store(s => s.user);
+  const [percentage, setPercentage] = useState(0);
+
   const _add_activity = () => {
     modals.open({
       id: "new-activity-modal",
@@ -85,6 +88,10 @@ function TaskViewPanel() {
       const duration = moment.duration(moment(data.start_date).diff(data.end_date));
       const hours = duration.asHours();
       setHours(Math.ceil(hours));
+      const perc = ((data.activities.filter(a => a.status == "completed").length / data.activities.length) * 100).toFixed(0);
+      if (Number(perc)) {
+        setPercentage(Number(perc));
+      };
     }
   }, [data]);
 
@@ -115,7 +122,12 @@ function TaskViewPanel() {
 
   const _change_activity_status = async (status: string, activity_id: string) => {
     try {
-
+      const resp = (await axios.post<{ success: boolean; message: string }>(`/api/activity/status/${activity_id}`, { status: status })).data;
+      if (resp.success) {
+        window.location.reload();
+      } else {
+        alert(resp.message);
+      }
     } catch (error) {
       console.log(error);
     }
@@ -125,6 +137,16 @@ function TaskViewPanel() {
     modals.open({
       title: `Add a members to ${task.title}`,
       children: <AddMemberToTask task={task} />
+    });
+  }
+
+  const _delete_task = (task: Task) => {
+    modals.openConfirmModal({
+      children: <ProjectTaskCard task={task} />,
+      labels: {
+        cancel: "Cancel",
+        confirm: "Delete"
+      }
     });
   }
 
@@ -146,7 +168,9 @@ function TaskViewPanel() {
             <Group grow>
               <Text color="dimmed">Status:</Text>
               <Box>
-                <Badge>{data.status}</Badge>
+                {percentage == 100 ?
+                  <Badge>Completed</Badge> : <Badge color={data.status == "complete" ? "green" : "red"}>{data.status}</Badge>
+                }
               </Box>
             </Group>
             <Group grow>
@@ -181,6 +205,9 @@ function TaskViewPanel() {
                 </Group>
               </Box>
             </Group>
+            <Box>
+              <Button onClick={() => _delete_task(data as unknown as Task)} color="red">Delete</Button>
+            </Box>
           </Stack>
           <Tabs variant="outline" value={tabs_value} onTabChange={setTabs_value}>
             <Tabs.List style={{ borderBottom: "none" }} p={5}>

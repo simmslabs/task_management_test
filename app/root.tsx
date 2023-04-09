@@ -29,6 +29,36 @@ export const loader: LoaderFunction = async ({ request }) => {
   const auth = await auth_middleware(request);
   if (auth) {
     _data.user = auth.user;
+    const tasks = await prisma?.task.findMany({
+      where: {
+        OR: [
+          {
+            user_id: auth.user.id
+          },
+          {
+            user_tasks: {
+              some: {
+                user_id: auth.user.id
+              }
+            }
+          }
+        ]
+      },
+      include: {
+        activities: {
+          include: {
+            activity_users: true,
+            comments: true,
+            task: true,
+            user: true
+          }
+        }
+      },
+      orderBy: [{
+        created_at: "desc"
+      }]
+    });
+    _data.tasks = tasks;
   }
   return _data;
 }
