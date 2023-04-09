@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// model system_version {
+//   id      String @id @map("_id")
+//   version String
+
+//   @@map("system.version")
+// }
+
+model user {
+  id             String           @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  email          String
+  password       String
+  tasks          task[]
+  activity       activity[]
+  comment        comment[]
+  user_tasks     user_tasks[]
+  activity_users activity_users[]
+}
+
+model task_tag {
+  id            String          @id @default(auto()) @map("_id") @db.ObjectId
+  title         String
+  task_man_tags task_man_tags[]
+}
+
+model task {
+  id            String          @id @default(auto()) @map("_id") @db.ObjectId
+  user_id       String          @db.ObjectId
+  user          user            @relation(fields: [user_id], references: [id])
+  title         String
+  description   String
+  status        String
+  start_date    DateTime
+  end_date      DateTime
+  created_at    DateTime?       @db.Timestamp
+  updated_at    DateTime?       @db.Timestamp
+  comment       comment[]
+  task_man_tags task_man_tags[]
+  user_tasks    user_tasks[]
+  activities    activity[]
+}
+
+model user_tasks {
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  task_id String @db.ObjectId
+  task    task   @relation(fields: [task_id], references: [id])
+  user_id String @db.ObjectId
+  user    user   @relation(fields: [user_id], references: [id])
+}
+
+model task_man_tags {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  task_id     String   @db.ObjectId
+  task        task     @relation(fields: [task_id], references: [id])
+  task_tag_id String   @db.ObjectId
+  task_tag    task_tag @relation(fields: [task_tag_id], references: [id])
+}
+
+model activity {
+  id             String           @id @default(auto()) @map("_id") @db.ObjectId
+  user_id        String           @db.ObjectId
+  user           user             @relation(fields: [user_id], references: [id])
+  task_id        String           @db.ObjectId
+  task           task             @relation(fields: [task_id], references: [id])
+  title          String
+  description    String
+  status         String
+  start_date     DateTime
+  end_date       DateTime
+  created_at     DateTime?        @default(now())
+  updated_at     DateTime?        @default(now())
+  comments       comment[]
+  activity_users activity_users[]
+}
+
+model activity_users {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  user_id     String   @db.ObjectId
+  user        user     @relation(fields: [user_id], references: [id])
+  activity_id String   @db.ObjectId
+  activity    activity @relation(fields: [activity_id], references: [id], onDelete: Cascade)
+}
+
+model comment {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  user_id     String    @db.ObjectId
+  user        user      @relation(fields: [user_id], references: [id])
+  task_id     String    @db.ObjectId
+  task        task      @relation(fields: [task_id], references: [id])
+  activity_id String    @db.ObjectId
+  activity    activity  @relation(fields: [activity_id], references: [id])
+  title       String
+  content     String
+  created_at  DateTime? @default(now())
+  updated_at  DateTime? @db.Timestamp
+}
