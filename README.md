@@ -2,9 +2,12 @@
 
 ## Development
 
-Start the Remix development asset server and the Express server by running:
+First todo after clonning:
 
 ```sh
+pnpm install
+npx prisma db push
+# If using an old prisma version the run --> npx prisma generate
 pnpm run dev
 ```
 
@@ -17,7 +20,7 @@ First, build your app for production:
 ```sh
 pnpm install
 npx prisma db push
-# If using an old prisma version the run the command below
+# If using an old prisma version the run --> npx prisma generate
 pnpm run build
 ```
 
