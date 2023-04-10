@@ -65,7 +65,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
     return {
       tasks: resps[0],
       tags: resps[1],
-      user: resps[2]
+      users: resps[2]
     }
   }
   return json(null);

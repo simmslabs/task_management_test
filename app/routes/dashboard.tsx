@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/anchor-has-content */
-import { AppShell, Avatar, Box, Button, Card, Divider, Grid, Group, LoadingOverlay, NavLink, Navbar, Stack, Text, TextInput } from "@mantine/core";
+import { AppShell, Avatar, Badge, Box, Button, Card, Divider, Grid, Group, HoverCard, LoadingOverlay, NavLink, Navbar, Stack, Text, TextInput } from "@mantine/core";
 import type { LoaderFunction, V2_MetaFunction } from "@remix-run/node";
 import { Link, Outlet, useLocation, useNavigate, useNavigation, useRouteLoaderData } from "@remix-run/react";
 import { useEffect, useState } from "react";
@@ -9,6 +9,7 @@ import { use_user_store } from "~/services/states";
 import type { Task } from "~/types";
 import { NavigationProgress, resetNavigationProgress, startNavigationProgress } from "@mantine/nprogress";
 import axios from "axios";
+import { task_tag, user } from "@prisma/client";
 
 export const meta: V2_MetaFunction = () => {
   return [{ title: "Task Manager" }];
@@ -25,6 +26,7 @@ export default function Index() {
   const [_tasks, setTasks] = useState<Task[]>([]);
   const nav = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState<{ tasks: Task[]; tags: task_tag[], users: user[] } | null>(null);
   const root_data = useRouteLoaderData("root") as unknown as { tasks: Task[] } | null;
   useEffect(() => {
     if (root_data && "tasks" in root_data) {
@@ -51,6 +53,18 @@ export default function Index() {
     const resp = (await axios.get<boolean | null>("/api/auth/logout")).data;
     if (resp) {
       nav("/login");
+    }
+  }
+
+  const _on_search = async (str: string) => {
+    if (str) {
+      const resp = (await axios.get(`/api/search/${str}`)).data;
+      if (resp && ("tasks" in resp || "tags" in resp || "users" in resp)) {
+        setResults(resp);
+      }
+      console.log(resp);
+    } else {
+      setResults(null);
     }
   }
 
@@ -85,7 +99,32 @@ export default function Index() {
             {loc.pathname == "/dashboard" ?
               <Stack>
                 <LoadingOverlay visible={loading} />
-                <TextInput type="search" placeholder='Search for tasks, tags, team members' variant="filled" radius="md" />
+                <HoverCard width="parent">
+                  <HoverCard.Target>
+                    <Box>
+                      <TextInput onChange={(e) => _on_search(e.target.value)} type="search" placeholder='Search for tasks, tags, team members' variant="filled" radius="md" />
+                    </Box>
+                  </HoverCard.Target>
+                  <HoverCard.Dropdown>
+                    <Stack>
+                      {results && (
+                        <>
+                          <Group>
+                            <Badge leftSection={<Text>{results.tasks.length}</Text>}>Tasks</Badge>
+                            <Badge leftSection={<Text>{results.tags.length}</Text>}>Tags</Badge>
+                            <Badge leftSection={<Text>{results.users.length}</Text>}>users</Badge>
+                          </Group>
+                          {results.users.map((m, i) => (
+                            <Text key={i}>{m.name}</Text>
+                          ))}
+                          {results.tasks.map((m, i) => (
+                            <Text component={Link} to={`/dashboard/task/${m.id}`} key={i}>{m.title}</Text>
+                          ))}
+                        </>
+                      )}
+                    </Stack>
+                  </HoverCard.Dropdown>
+                </HoverCard>
                 <Grid>
                   {_tasks.map((task, i) => (
                     <Grid.Col key={i} md={3}>
